@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, BrainCircuit } from 'lucide-react';
+import { Send, Trash2, BrainCircuit, Database, Globe, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatBubble } from './chat-bubble';
-import { aiConversation } from '@/ai/flows/ai-conversation';
+import { multiAgentOrchestrator } from '@/ai/flows/multi-agent-orchestrator';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Badge } from '@/components/ui/badge';
 
 type Message = {
   role: 'user' | 'model';
@@ -45,7 +46,8 @@ export function ChatInterface() {
         parts: [{ text: msg.content }]
       }));
 
-      const response = await aiConversation({
+      // Llamada al Agente Controlador (Orquestador)
+      const response = await multiAgentOrchestrator({
         message: userMessage,
         history: history
       });
@@ -55,7 +57,7 @@ export function ChatInterface() {
       console.error('Failed to get AI response:', error);
       setMessages((prev) => [...prev, { 
         role: 'model', 
-        content: "Lo siento, hubo un problema al procesar tu mensaje. ¿Podrías intentarlo de nuevo?" 
+        content: "Lo siento, hubo un problema en la orquestación de agentes. ¿Podrías intentarlo de nuevo?" 
       }]);
     } finally {
       setIsLoading(false);
@@ -68,18 +70,31 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto w-full gap-4 p-2 sm:p-4">
-      {/* Header */}
+      {/* Header con información de la arquitectura */}
       <Card className="flex items-center justify-between p-4 border-none shadow-md bg-card/80 backdrop-blur-sm transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <BrainCircuit className="h-6 w-6 text-primary" />
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <BrainCircuit className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-primary tracking-tight">Chatbot Multi-Agente</h1>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                Arquitectura de 3 Agentes Activa
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-primary tracking-tight">Chatbot AI</h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              Asistente Inteligente Activo
-            </p>
+          <div className="flex gap-2 mt-2">
+            <Badge variant="outline" className="text-[10px] flex gap-1 items-center">
+              <Globe className="h-3 w-3" /> Web
+            </Badge>
+            <Badge variant="outline" className="text-[10px] flex gap-1 items-center">
+              <Cpu className="h-3 w-3" /> Controlador
+            </Badge>
+            <Badge variant="outline" className="text-[10px] flex gap-1 items-center">
+              <Database className="h-3 w-3" /> Datos
+            </Badge>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -102,25 +117,23 @@ export function ChatInterface() {
           {messages.length === 0 ? (
             <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8">
               <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
-                <BrainCircuit className="h-8 w-8 text-primary/40" />
+                <Cpu className="h-8 w-8 text-primary/40" />
               </div>
-              <h2 className="text-2xl font-bold text-primary mb-2">Bienvenido a Chatbot</h2>
+              <h2 className="text-2xl font-bold text-primary mb-2">Bienvenido al Orquestador</h2>
               <p className="text-muted-foreground max-w-sm">
-                Tu asistente inteligente está listo para ayudarte. 
-                Pregúntame cualquier cosa o cuéntame qué tienes en mente.
+                Esta interfaz actúa como el <strong>Agente Web</strong>, enviando tus peticiones al 
+                <strong>Agente Controlador</strong>, quien gestionará la base de datos si es necesario.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 w-full max-w-md">
                 {[
-                  "¿Cómo puedo mejorar mi productividad?",
-                  "Ayúdame a planificar mi semana",
-                  "Explícame qué es la inteligencia emocional",
-                  "Dame consejos para dormir mejor"
+                  "Consulta el estado de mi base de datos",
+                  "Guarda un recordatorio importante",
+                  "¿Qué información tienes almacenada?",
+                  "Prueba la conexión con el agente de datos"
                 ].map((suggestion, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      setInput(suggestion);
-                    }}
+                    onClick={() => setInput(suggestion)}
                     className="text-sm p-3 rounded-xl border border-primary/10 bg-card hover:bg-primary/5 hover:border-primary/20 transition-all text-left text-muted-foreground hover:text-primary"
                   >
                     {suggestion}
@@ -151,15 +164,12 @@ export function ChatInterface() {
           <form onSubmit={handleSubmit} className="flex gap-2 relative items-end">
             <div className="relative flex-1 group">
               <Input
-                placeholder="Escribe un mensaje..."
+                placeholder="Escribe un mensaje para el sistema multi-agente..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 className="flex-1 min-h-[48px] pr-12 bg-background border-none focus-visible:ring-2 focus-visible:ring-accent shadow-inner rounded-2xl transition-colors"
                 disabled={isLoading}
               />
-              <div className="absolute right-3 bottom-2.5 text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden sm:block">
-                Presiona Enter para enviar
-              </div>
             </div>
             <Button 
               type="submit" 
@@ -171,7 +181,7 @@ export function ChatInterface() {
             </Button>
           </form>
           <p className="text-[10px] text-center text-muted-foreground mt-3 tracking-wide">
-            Chatbot AI puede cometer errores. Considera verificar la información importante.
+            Arquitectura: Web (UI) → Controlador (Genkit) → Datos (Tools)
           </p>
         </div>
       </Card>
