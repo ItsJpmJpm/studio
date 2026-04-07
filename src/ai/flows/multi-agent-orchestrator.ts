@@ -1,16 +1,16 @@
+
 'use server';
 /**
  * @fileOverview Arquitectura de 3 Agentes:
  * 1. Agente Web (Next.js/React) - Interfaz de usuario.
- * 2. Agente Controlador (Genkit Flow) - Orquestador central.
- * 3. Agente de Datos (Genkit Tool) - Especialista en persistencia.
+ * 2. Agente Controlador (Hugging Face - Llama) - Orquestador central que procesa la lógica.
+ * 3. Agente de Datos (Genkit Tool) - Especialista en persistencia y consultas.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // --- AGENTE DE BASE DE DATOS (Tool) ---
-// Este agente se encarga exclusivamente de interactuar con la lógica de datos.
 const databaseAgent = ai.defineTool(
   {
     name: 'databaseAgent',
@@ -26,10 +26,8 @@ const databaseAgent = ai.defineTool(
     }),
   },
   async (input) => {
-    // Simulación de interacción con DB
     console.log(`[Agente DB] Ejecutando: ${input.action} - ${input.query}`);
-    
-    // Aquí iría la lógica real de Firebase o SQL
+    // Simulación de interacción con DB
     if (input.action === 'query') {
       return {
         success: true,
@@ -45,8 +43,39 @@ const databaseAgent = ai.defineTool(
   }
 );
 
+// --- UTILIDAD HUGGING FACE ---
+async function callHuggingFace(messages: any[]) {
+  const model = "meta-llama/Llama-3.2-3B-Instruct";
+  const token = process.env.HUGGINGFACE_TOKEN;
+
+  if (!token) {
+    throw new Error("HUGGINGFACE_TOKEN no configurado en .env");
+  }
+
+  const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Error de Hugging Face: ${error}`);
+  }
+
+  const result = await response.json();
+  return result.choices[0].message.content;
+}
+
 // --- AGENTE CONTROLADOR (Orquestador Flow) ---
-// Actúa como el cerebro (similar a un controlador HuggingFace/Llama) que decide cuándo usar el Agente de Datos.
 const MultiAgentInputSchema = z.object({
   message: z.string().describe('Mensaje del usuario enviado desde el Agente Web.'),
   history: z.array(z.any()).optional(),
@@ -65,23 +94,56 @@ const multiAgentFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const response = await ai.generate({
-      model: 'googleai/gemini-2.5-flash', // Usamos Gemini como motor del controlador
-      tools: [databaseAgent],
-      system: `Eres el Agente Controlador de un sistema multi-agente.
-      Tu arquitectura consiste en:
-      1. Agente Web: Recibe las peticiones (ya estás conectado a él).
-      2. Agente de Datos: Una herramienta experta para DB.
-      
-      Si el usuario pide información, guardar algo o consultar datos, DEBES delegar esa tarea al databaseAgent.
-      Analiza la respuesta del databaseAgent y preséntala de forma clara al Agente Web.
-      Habla siempre en español de forma profesional y eficiente.`,
-      messages: [
-        ...(input.history || []),
-        { role: 'user', parts: [{ text: input.message }] }
-      ],
-    });
+    const systemPrompt = `Eres el Agente Controlador (basado en Llama via Hugging Face).
+    Tu arquitectura:
+    1. Agente Web: Recibe peticiones del usuario.
+    2. Agente de Datos: Herramienta experta en DB (databaseAgent).
 
-    return response.text;
+    REGLA DE ORO:
+    Si el usuario pide guardar o consultar algo, debes usar la herramienta databaseAgent.
+    Para usar la herramienta, responde EXCLUSIVAMENTE con el formato JSON:
+    {"tool": "databaseAgent", "action": "query" o "save", "query": "descripción"}
+
+    Si ya tienes la respuesta o es una charla general, responde normalmente en español profesional.`;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...(input.history || []).map((h: any) => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts[0].text
+      })),
+      { role: "user", content: input.message }
+    ];
+
+    // Llamada inicial a Hugging Face (Llama)
+    let llamaResponse = await callHuggingFace(messages);
+
+    // Intento de parsear si Llama decidió usar la herramienta
+    try {
+      if (llamaResponse.includes('{"tool":')) {
+        const jsonMatch = llamaResponse.match(/\{.*\}/s);
+        if (jsonMatch) {
+          const toolCall = JSON.parse(jsonMatch[0]);
+          
+          if (toolCall.tool === 'databaseAgent') {
+            // Ejecutamos el Agente de Datos (Genkit Tool)
+            const toolResult = await databaseAgent({
+              action: toolCall.action,
+              query: toolCall.query
+            });
+
+            // Volvemos a llamar a Llama con el resultado del Agente de Datos
+            messages.push({ role: "assistant", content: llamaResponse });
+            messages.push({ role: "user", content: `Resultado del Agente de Datos: ${JSON.stringify(toolResult)}. Ahora da la respuesta final al usuario.` });
+            
+            llamaResponse = await callHuggingFace(messages);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error procesando orquestación:", e);
+    }
+
+    return llamaResponse;
   }
 );
