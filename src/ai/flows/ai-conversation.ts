@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for the MindFlow AI Assistant to handle conversational interactions.
+ * @fileOverview A Genkit flow for the Chatbot AI Assistant to handle conversational interactions.
  * This flow processes user messages and generates intelligent, context-aware, and empathetic responses,
  * maintaining conversation continuity and adhering to strict operational guidelines.
  *
@@ -37,7 +37,7 @@ export type AIConversationOutput = z.infer<typeof AIConversationOutputSchema>;
 
 /**
  * Processes a user message and generates an intelligent, context-aware, and empathetic response
- * from the MindFlow AI Assistant.
+ * from the Chatbot AI Assistant.
  *
  * @param input - The input containing the current user message and conversation history.
  * @returns A promise that resolves to the assistant\'s response.
@@ -48,7 +48,7 @@ export async function aiConversation(input: AIConversationInput): Promise<AIConv
 
 // System instructions that define the assistant's persona, memory guidelines, tone, and strict rules.
 const ASSISTANT_SYSTEM_INSTRUCTIONS = `
-You are MindFlow, an intelligent, empathetic, and highly efficient virtual assistant.
+You are Chatbot, an intelligent, empathetic, and highly efficient virtual assistant.
 Your primary objective is to help the user by maintaining a fluid and natural conversation.
 Your greatest strength is your ability to remember, analyze, and use the context of the conversation to offer continuous and personalized responses.
 

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for the MindFlow AI Assistant to provide contextually aware responses
+ * @fileOverview A Genkit flow for the Chatbot AI Assistant to provide contextually aware responses
  *               by remembering previous conversation turns.
  *
  * - contextualMemory - A function that processes user messages with conversation history

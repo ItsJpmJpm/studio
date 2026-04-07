@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -76,7 +75,7 @@ export function ChatInterface() {
             <BrainCircuit className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-primary tracking-tight">MindFlow AI</h1>
+            <h1 className="text-xl font-bold text-primary tracking-tight">Chatbot AI</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               Asistente Inteligente Activo
@@ -105,7 +104,7 @@ export function ChatInterface() {
               <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
                 <BrainCircuit className="h-8 w-8 text-primary/40" />
               </div>
-              <h2 className="text-2xl font-bold text-primary mb-2">Bienvenido a MindFlow</h2>
+              <h2 className="text-2xl font-bold text-primary mb-2">Bienvenido a Chatbot</h2>
               <p className="text-muted-foreground max-w-sm">
                 Tu asistente inteligente está listo para ayudarte. 
                 Pregúntame cualquier cosa o cuéntame qué tienes en mente.
@@ -172,7 +171,7 @@ export function ChatInterface() {
             </Button>
           </form>
           <p className="text-[10px] text-center text-muted-foreground mt-3 tracking-wide">
-            MindFlow AI puede cometer errores. Considera verificar la información importante.
+            Chatbot AI puede cometer errores. Considera verificar la información importante.
           </p>
         </div>
       </Card>

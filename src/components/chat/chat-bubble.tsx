@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./markdown-renderer";
 import { Sparkles, User } from "lucide-react";
@@ -36,7 +35,7 @@ export function ChatBubble({ role, content }: ChatBubbleProps) {
           <MarkdownRenderer content={content} />
         </div>
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mt-1">
-          {isUser ? 'Tú' : 'MindFlow'}
+          {isUser ? 'Tú' : 'Chatbot'}
         </span>
       </div>
     </div>

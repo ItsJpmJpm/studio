@@ -1,10 +1,9 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'MindFlow AI Assistant',
+  title: 'Chatbot AI Assistant',
   description: 'An intelligent, empathetic, and highly efficient virtual assistant.',
 };
 
