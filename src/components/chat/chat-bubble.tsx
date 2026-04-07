@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./markdown-renderer";
 import { Sparkles, User } from "lucide-react";
@@ -27,10 +28,10 @@ export function ChatBubble({ role, content }: ChatBubbleProps) {
         isUser ? "items-end" : "items-start"
       )}>
         <div className={cn(
-          "rounded-2xl px-4 py-3 shadow-sm",
+          "rounded-2xl px-4 py-3 shadow-sm transition-colors",
           isUser 
             ? "bg-primary text-primary-foreground rounded-tr-none" 
-            : "bg-white text-foreground rounded-tl-none border border-border"
+            : "bg-card text-foreground rounded-tl-none border border-border"
         )}>
           <MarkdownRenderer content={content} />
         </div>
