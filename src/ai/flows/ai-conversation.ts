@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for the Chatbot AI Assistant to handle conversational interactions.
+ * @fileOverview - A Genkit flow for the Chatbot AI Assistant to handle conversational interactions.
  * This flow processes user messages and generates intelligent, context-aware, and empathetic responses,
  * maintaining conversation continuity and adhering to strict operational guidelines.
  *
